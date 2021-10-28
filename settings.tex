@@ -1,0 +1,37 @@
+%
+% List of packages, ...
+%
+
+\usepackage{latexsym}
+\usepackage{fullpage}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{a4}
+\usepackage{amsfonts}
+\usepackage{eucal}
+\usepackage{fancyhdr}
+\usepackage[T1]{url}
+\usepackage{listings}
+\usepackage[printonlyused]{acronym}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{multicol}
+\usepackage{hyphenat}
+
+% Urlsyle
+\urlstyle{tt}
+% Parskip
+\setlength{\parskip}{1ex plus0.5ex minus0.2ex}
+% Seperation between list items
+\setlength{\itemsep}{0ex plus0.2ex}
+
+% Fancy headers
+\setlength{\headsep}{8mm}
+\pagestyle{fancyplain}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{#1}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\lhead[\fancyplain{}{\thepage}]{\fancyplain{}{\slshape \rightmark}}
+\rhead[\fancyplain{}{\slshape \leftmark}]{\fancyplain{}{\thepage}}
+\cfoot{}
+

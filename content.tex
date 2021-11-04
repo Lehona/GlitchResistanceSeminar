@@ -1,21 +1,25 @@
 \chapter{Technical Background}
-
-\section{Technical 1}
-\section{Technical 2}
+Explain what glitches can and cannot do (e.g. fault a computation, alter an opcode arbitrarily, but multiple exact glitches are hard).
+\chapter{Defensive Programming}
+This section introduces various techniques that will make code more resistant to fault attacks, without requiring compiler or hardware support. \cite{witteman2008secure} is a rough outline for this chapter.
+\section{Fail by Default}
+\section{Trust but Verify}
 
 \chapter{Different Countermeasures}
 \section{Control-Flow Integrity}
 \subsection{Derived Signatures}
 \subsection{Generalized Path Signature Analysis}
+\subsection{Interleaved Signature Instruction Stream}
 \section{Redundant Computations}
 \section{Constant Diversification}
 \section{Random Timing}
 
-\chapter{}
+\chapter{Evaluating Countermeasures}
+This chapter will deal with evaluating the introduced countermeasures. This will mostly contain work from the original paper and ARMORY\,\cite{9206547} (kleiner RUB plug hier).
 
 
+\chapter{Results}
+This chapter will deal with the results, if there are any (not many countermeasures have been practically evaluated). 
 
-\chapter{}
-
-
-\chapter{}
+\chapter{Conclusion}
+Highlight the best (most efficient, most effective) countermeasures, depending on their required investment (compiler changes or hardware modifications).

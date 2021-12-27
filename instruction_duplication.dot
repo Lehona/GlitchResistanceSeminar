@@ -1,0 +1,50 @@
+digraph G {
+    subgraph cluster_original {
+        label="(1) Program with a single\ninstruction stream";
+        style="";
+        penwidth=0;
+        start2 -> a -> b -> end2;
+        labelloc="b";
+        start2 [shape=Mdiamond, label="start"];
+        end2 [shape=Msquare, label="end"];
+        invi [style="invis"];
+        end2 -> invi [style="invis"];
+    }
+    
+    subgraph cluster_duplicated {
+        label="(2) Program with duplicated\ninstruction streams S and S'";
+        a1 [label="a", style=filled,fillcolor=white];
+        a2 [label="a'"];
+        b1 [label="b", style=filled,fillcolor=white];
+        b2 [label="b'"];
+        style="";
+        labelloc="b";
+        penwidth=0;
+        
+        subgraph cluster_0 {
+            style=filled;
+            color=lightgrey;
+            node [color=white];
+            a1 -> b1;
+            label = "S";
+            labelloc="";
+        }
+        
+        subgraph cluster_1 {
+            style=""
+            node [style=filled];
+            a2 -> b2;
+            label = "S'";
+            labelloc="";
+        }
+        start -> a1;
+        start -> a2;
+        b1 -> cmp;
+        b2 -> cmp;
+        cmp -> end;
+        cmp -> error;
+        start [shape=Mdiamond];
+        end [shape=Msquare];
+        { rank=same; error [style=filled,fillcolor="#CE2029E0"]; cmp; }
+    }
+  }

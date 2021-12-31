@@ -7,7 +7,7 @@ Not all programs are equally susceptible to glitch attacks and thus there are ma
 This section introduces various techniques that will make code more resistant to fault attacks, without requiring compiler or hardware support. \cite{witteman2008secure} is a rough outline for this chapter.
 \section{Fail by Default}
 A common way of checking a series of conditions or values can be seen in Listing\,\ref{list:check_bad}, where a variable \texttt{success} is initialized to \texttt{true} and only set to false if a \texttt{false} condition or wrong value is encountered. 
-## bad codelisting ##
+\begin{lstlisting}[caption={check-bad},label={list:check_bad}]
 int success = TRUE;
 for (int i=0;i>5;i++) {
 	if (!condition[i]) {
@@ -19,12 +19,13 @@ if (success)
 	succeed();
 else
 	fail();
-\label{list:check_bad}
-## codelisting ##
+
+\end{lstlisting}
 
 Although this code snippet \todo{too informal?} bears no semantic vulnerabilities or logic errors, it is easily thwarted by glitch attacks. Note that the implementation assumes success-by-default, in a way that \texttt{success} will be \texttt{true} as long as no \texttt{false} condition is encountered, without any safeguard to ensure that all conditions are checked. Any glitch that is able to skip the for-loop or at least some iterations can result in a wrong value for \texttt{success}. A better implementation could look like Listing \ref{list:check_good}.\,\cite{witteman2008secure}
 
-## good codelisting ##
+
+\begin{lstlisting}[caption={check-bad},label={list:check_good}]
 int fails = 5;
 for (int i=0;i>5;i++) {
 	if (condition[i]) {
@@ -38,9 +39,7 @@ if (fails == 0)
 	succeed();
 else
 	fail();
-\label{list:check_good}
-## codelisting ##
-
+\end{lstlisting}
 
 Decrementing a counter on every successful check ensures that the loop body has to have run for \texttt{fails} to contain \texttt{0}, which decreases the target surface for successful glitches.
 
@@ -49,24 +48,22 @@ Decrementing a counter on every successful check ensures that the loop body has 
 
 When checking a variable for all of its allowed states, make sure that each possible value is handled explicitly and a \texttt{default}-case causes an explicit fail, rather than using it to handle the last possible value. Listing \ref{list:switch_bad} shows a vulnerable example, where the corruption of the \texttt{state}-variable by a glitch could lead to an unauthorized action.
 
-## bad codelisting ##
+\begin{lstlisting}[caption={check-bad},label={list:switch_bad}]
 switch (state) {
 	case 0: login_guest(); break;
 	case 1: login(); break;
 	default: login_admin(); break;
 }
-\label{list:switch_bad}
-## codelisting ##
+\end{lstlisting}
 
-## good codelisting ##
+\begin{lstlisting}[caption={check-bad},label={list:switch_good}]
 switch (state) {
 	case 0: login_guest(); break;
 	case 1: login(); break;
 	case 2: login_admin(); break;
 	default: fail(); break;
 }
-\label{list:switch_good}
-## codelisting ##
+\end{lstlisting}
 
 Listing \ref{list:switch_good} ensures that corrupting \texttt{state} to an illegal value outside the range 0-2 leads to an immediate fail, thus requiring the attacker to specifically corrupt \texttt{state} to the value 2 (or possibly 1). which is less likely.\,\cite{witteman2008secure}
 
@@ -79,13 +76,12 @@ Related to Section \ref{sec:fail_explicit} is the representation of internal sta
 
 Better representations, such as seen in Listing \ref{list:enum_good}, can be manually selected, but even using random numbers generated during development is a signifcant improvement.
 
-## good codelisting ##
+\begin{lstlisting}[caption={check-bad},label={list:enum_good}]
 int STATE_1 = 0xdc8ea5;
 int STATE_2 = 0x64da3b;
 int STATE_3 = 0x46b766;
 int STATE_4 = 0x799348;
-\label{list:enum_good}
-## codelisting ##
+\end{lstlisting}
 
 An optimal solution would use Reed-Salomon-Codes \todo{cite} to find values with maximum pair-wise distance, which is discussed further in Section\,\ref{sec:constant_diverse}.
 \chapter{Different Countermeasures}
@@ -96,7 +92,8 @@ Albeit an attacker that can perform truly arbitrary glitches cannot be stopped, 
 A simple method to detect data corruption that, e.g., occurred due to an injected glitch, is instruction duplication.\,\cite{chang2019evaluating} A sensitive function may be protected by this technique by transforming the code at the IR \todo{acro} level, e.g., via a LLVM compiler plugin \todo{more context/citation?}. In this transformation, a stream of instructions that produces a value \texttt{V} is duplicated, such that a second value \texttt{V'} is produced. After both parts are run, the results \texttt{V} and \texttt{V'} are compared and only if they are equal does the new instruction stream result in the value \texttt{V}, e.g., to store or use as a cryptographic value. If they are unequal, an error function may be called, to signal detection of a corruption attempt. Figure\,\ref{fig:duplicated} shows an example of this, where a simple instruction stream is duplicated into two streams \texttt{S} and \texttt{S'}, which are ultimately joined by a comparison instruction.
 
 \begin{figure}
-	\includegraphics[width=0.8\textwidth]{instruction_duplication}
+	\centering
+	\includegraphics[width=0.5\textwidth]{instruction_duplication}
 	\caption{Two versions of a program, with (2) and without (1) a duplicated instruction stream.}
 	\label{fig:duplicated}
 \end{figure}
@@ -111,15 +108,24 @@ We have already discussed the increased protection that diversified constants gr
 
 
 \section{Random Timing}
-All glitch-based attacks ultimately rely on the precise injection of one or more glitches to achieve their goal. \todo{formulierung??} In particular the glitch injection is very timing sensitive, on the order of x nanoseconds\todo{find out timings}, depending on processor speed. Many glitching attempts use some kind of observable behaviour, e.g., a monitor signal or a significant spike in power usage, to tune the exact time to disrupt the hardware and thus inject the glitch.
+All glitch-based attacks ultimately rely on the injection of one or more glitches to achieve their goal. \todo{formulierung??} In particular the glitch injection is very sensitive to timing, on the order of x nanoseconds\todo{find out timings}, depending on processor speed. Without precise control over the timing of the glitch, attacking a specific instruction has to rely on pure chance and is often prohibitively unlikely\,\cite{6425517}. Many glitching attempts use some kind of observable behaviour, e.g., a monitor signal or a significant spike in power usage, to tune the exact time to disrupt the hardware and thus inject the glitch.
 
 Naturally, preventing the attacker from exploiting those behaviours for timing purposes can be a powerful practical defense against glitching-based attacks. However, masking these observable behaviours is often times near impossible (e.g., power consumption) or even undesirable, as the behaviour is intentional (e.g., monitor signal).
 
 A better solution to thwart this approach is the addition of small, random delays at arbitrary locations in the program, but in particular right before sensitive code regions. The overhead and effectiveness of this technique depend entirely on the size of the added delays, and the quality of the random source. Ultimately an attacker may still be able to perform the desired glitch, but the introduced jitter can make it prohibitively unlikely and expensive. \todo{besser formulieren - mehr text?? - paper wo?}
 
+With precise enough instruments, an attacker can correlate the currently executing instruction by measuring some external quality, such as power consumption or electromagnetic radiation. This means that any localized random delay can be circumvented, as the attacker can resynchronize his timing based on the current instructions. To protect against such a powerful adversary, it is possible to introduce randomized delay at the clock level, such that any singular clock cycle takes a variable time. However, this solution will reduce the effective clock frequency by a factor of four.\,\cite{kommerling1999design}
+
 \section{Control-Flow Integrity}
-\subsection{Derived Signatures}
+The control flow of a program is the specific order of instructions that are executed during a run of the program. This includes, but is not limited to, branching instructions and therefore the corresponding branch targets. Many of the more powerful glitch attacks rely on altering the control flow in some way, e.g., by changing the instruction stream during execution or skipping an instruction. In the light of this information, it seems prudent to base countermeasures on ensuring the integrity of the program's control flow.
+
+\subsection{Signature Monitoring}
+Signature based methods for enforcing control-flow integrity use signatures that are assigned to a block of instructions, usually a basic block. There is then some kind of mechanism that periodically checks whether the actual control-flow matches the corresponding signatures.\todo{neu formulieren}
+
+Besides assigning arbitrary signatures to such a block\,\cite{lu1982watchdog}, there are many techniques that derive the signature based on the instructions contained in the block\,\cite{rodriguez2002watchdog, wilken1988continuous, wilken1990continuous}, which is advantageous due to its much reduced memory footprint. These techniques then differ based on the particular way to compute this signature during runtime and in which way it is checked, e.g., by a watchdog processor\,\cite{rodriguez2002watchdog} or purely software-based\,\cite{ersoz1985watchdog}.
+
 \subsection{Generalized Path Signature Analysis}
+
 \subsection{Interleaved Signature Instruction Stream}
 
 \chapter{Evaluating Countermeasures}
